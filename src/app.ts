@@ -6,16 +6,22 @@ wss.on('connection', function connection(ws) {
   console.log("Client connected");
   ws.on('error', console.error);
 
-  ws.on('message', function message(data) {
+  ws.on('message', function message(data, isBinary) {
     console.log('received: %s', data);
+    const payload = {
+      type: "custom-type",
+      message: data.toString()
+    }
+    wss.clients.forEach((client) => {
+      if (client !== ws && client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify(payload));
+      }
+    })
   });
 
   ws.on("close", (code, reason) => {
-    console.log(code);
     console.log("Client disconnected");
   })
-
-  ws.send('Hello from server');
 });
 
 console.log("Server running on port 3000")
